@@ -52,15 +52,16 @@ class SMSView(APIView):
             raise ApiError(message='from parameter not found')
         cached_record = cache.get(f"{request.META['user'].id}_{serialized_data.validated_data['from_number']}")
 
-        if cached_record is None:
-            raise ApiError("No cache present")
+        # if cached_record is None:
+        #     raise ApiError("No cache present")
 
-        if len(cached_record) == 1:
-            raise ApiError(f"limit reached for {serialized_data.validated_data['from_number']}")
+        if cached_record is not None:
+            if len(cached_record) == 50:
+                raise ApiError(f"limit reached for {serialized_data.validated_data['from_number']}")
 
-        if serialized_data.validated_data['to_number'] in cached_record:
-            raise ApiError(
-                f"sms from {serialized_data.validated_data['from_number']} to {serialized_data.validated_data['to_number']} blocked by STOP request")
+            if serialized_data.validated_data['to_number'] in cached_record:
+                raise ApiError(
+                    f"sms from {serialized_data.validated_data['from_number']} to {serialized_data.validated_data['to_number']} blocked by STOP request")
 
         return ResponseFormatterUtil.success("outbound sms ok")
 
