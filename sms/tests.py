@@ -1,14 +1,8 @@
 import base64
-
 from rest_framework import status
-from rest_framework.test import APIRequestFactory, APITestCase
-from rest_framework.test import APIClient
-from requests.auth import HTTPBasicAuth
+from rest_framework.test import APITestCase
 from django.core.cache import cache
 
-
-
-# Create your tests here.
 from account.models import Account
 from phone_number.models import PhoneNumber
 
@@ -57,11 +51,15 @@ class InboundSmsTests(APITestCase):
             "to": self.phone_number[1].number,
             "text": "STOP\r\n",
         })
-
-        cached_record = cache.get(f"{self.account.id}_{self.phone_number[0].number}")
+        cached_record = cache.get(
+            f"inbound:account_id:{self.account.id}:{self.phone_number[0].number}:{self.phone_number[1].number}"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['message'], 'inbound sms ok')
         self.assertNotEqual(cached_record, None)
+        cache.delete(
+            f"inbound:account_id:{self.account.id}:{self.phone_number[0].number}:{self.phone_number[1].number}"
+        )
 
 
 class OutboundSmsTests(APITestCase):
@@ -105,16 +103,3 @@ class OutboundSmsTests(APITestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertEqual(len(response.data['error']), 1)
-
-    # def test_stored_in_cache(self):
-    #     self.set_auth()
-    #     response = self.client.post(self.url, format='json', data={
-    #         "from": self.phone_number[0].number,
-    #         "to": self.phone_number[1].number,
-    #         "text": "STOP\r\n",
-    #     })
-    #
-    #     cached_record = cache.get(f"{self.account.id}_{self.phone_number[0].number}")
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(response.data['message'], 'outbound sms ok')
-    #     self.assertNotEqual(cached_record, None)

@@ -9,7 +9,7 @@ def construct_error_messages(param_name=''):
     }
 
 
-class InboundSmsSerializer(serializers.Serializer):
+class SmsSerializer(serializers.Serializer):
     from_number = serializers.CharField(
         min_length=6,
         max_length=16,
